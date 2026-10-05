@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Video Downloader API Route
+// Universal Video Extraction Route
 app.post('/api/download', async (req, res) => {
     const { videoUrl } = req.body;
 
@@ -25,37 +25,7 @@ app.post('/api/download', async (req, res) => {
     }
 
     try {
-        // Backup API Method (AIO Extractor)
-        const response = await axios.get(`https://api.cobalt.tools/api/json`, {
-            method: 'POST',
-            data: {
-                url: videoUrl,
-                videoQuality: "1080",
-                filenamePattern: "basic"
-            },
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-            },
-            timeout: 12000
-        }).catch(() => null);
-
-        if (response && response.data && response.data.url) {
-            return res.json({
-                success: true,
-                data: {
-                    title: "GrabHD Extracted Video",
-                    thumbnail: "https://via.placeholder.com/160x90/b8ef5e/111310?text=GrabHD+Media",
-                    source: "Social Media",
-                    formats: [
-                        { quality: "HD Video (No Watermark)", type: "mp4", url: response.data.url }
-                    ]
-                }
-            });
-        }
-
-        // Secondary Public API Fallback (Tikwm for TikTok / Fast Endpoint)
+        // 1. TikTok Specific Fast Engine
         if (videoUrl.includes('tiktok.com')) {
             const tikRes = await axios.get(`https://www.tikwm.com/api/?url=${encodeURIComponent(videoUrl)}`);
             if (tikRes.data && tikRes.data.data) {
@@ -63,27 +33,81 @@ app.post('/api/download', async (req, res) => {
                 return res.json({
                     success: true,
                     data: {
-                        title: videoData.title || "TikTok Video (HD)",
+                        title: videoData.title || "TikTok Video",
                         thumbnail: videoData.cover,
                         source: "TikTok",
                         formats: [
                             { quality: "HD (No Watermark)", type: "mp4", url: videoData.play },
-                            { quality: "Original HD", type: "mp4", url: videoData.wmplay }
+                            { quality: "Watermarked HD", type: "mp4", url: videoData.wmplay }
                         ]
                     }
                 });
             }
         }
 
+        // 2. Multi-Platform Cobalt Main API Engine (YouTube, Instagram, Facebook, Twitter)
+        const cobaltResponse = await axios.post('https://api.cobalt.tools/', {
+            url: videoUrl,
+            videoQuality: "720",
+            youtubeVideoCodec: "h264",
+            filenamePattern: "basic"
+        }, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            },
+            timeout: 15000
+        }).catch(err => err.response);
+
+        if (cobaltResponse && cobaltResponse.data) {
+            const resData = cobaltResponse.data;
+
+            // Direct URL Response
+            if (resData.url) {
+                return res.json({
+                    success: true,
+                    data: {
+                        title: "GrabHD Extracted Video",
+                        thumbnail: "https://via.placeholder.com/160x90/b8ef5e/111310?text=GrabHD+Media",
+                        source: "Social Media",
+                        formats: [
+                            { quality: "HD Quality (No Watermark)", type: "mp4", url: resData.url }
+                        ]
+                    }
+                });
+            }
+
+            // Picker / Multi-media response (Instagram Carousel / YouTube formats)
+            if (resData.picker && resData.picker.length > 0) {
+                const formats = resData.picker.map((item, index) => ({
+                    quality: `Media File #${index + 1}`,
+                    type: item.type || "mp4",
+                    url: item.url
+                }));
+
+                return res.json({
+                    success: true,
+                    data: {
+                        title: "GrabHD Multi-Media Extraction",
+                        thumbnail: resData.picker[0].thumb || "https://via.placeholder.com/160x90/b8ef5e/111310?text=GrabHD+Media",
+                        source: "Social Media",
+                        formats: formats
+                    }
+                });
+            }
+        }
+
+        // 3. Fallback General Extractor
         return res.status(500).json({ 
             success: false, 
-            error: "Unable to parse video. Please verify the link is public and try again." 
+            error: "Unable to extract video. Please ensure the post/video is public." 
         });
 
     } catch (error) {
         return res.status(500).json({ 
             success: false, 
-            error: "Extraction failed. Please try another link or platform." 
+            error: "Extraction process failed. Please check the link and try again." 
         });
     }
 });
