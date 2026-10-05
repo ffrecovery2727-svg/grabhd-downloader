@@ -4,509 +4,227 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GrabHD - Free High Speed Video Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#b8ef5e',
+                            dark: '#111310',
+                            card: '#191c18',
+                            border: '#333a30',
+                            accent: '#273128'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-            color: #f7f5f0;
-            background: #111310;
-            font-synthesis: none;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
         body {
-            margin: 0;
+            background: radial-gradient(ellipse at 50% -20%, #273128 0%, #111310 70%);
             min-height: 100vh;
-            background: radial-gradient(ellipse at 50% -20%, #273128 0, transparent 48%), #111310;
         }
-
-        .wrap {
-            max-width: 1100px;
-            margin: auto;
-            padding: 28px 24px 72px;
+        .glow-effect {
+            box-shadow: 0 0 50px -10px rgba(184, 239, 94, 0.15);
         }
-
-        .nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .loader-dots div {
+            animation-duration: 0.8s;
+            animation-iteration-count: infinite;
+            animation-name: loader-pulse;
         }
-
-        .brand-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand {
-            font-weight: 850;
-            font-size: 24px;
-            letter-spacing: -.7px;
-        }
-
-        .brand span {
-            color: #b8ef5e;
-        }
-
-        /* Iconic Bookmark Me Button/Badge */
-        .bookmark-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(184, 239, 94, 0.12);
-            border: 1px solid #b8ef5e;
-            color: #b8ef5e;
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 0 15px rgba(184, 239, 94, 0.15);
-        }
-
-        .bookmark-btn:hover {
-            background: #b8ef5e;
-            color: #111310;
-            transform: translateY(-1px);
-            box-shadow: 0 0 20px rgba(184, 239, 94, 0.4);
-        }
-
-        .bookmark-icon {
-            font-size: 14px;
-        }
-
-        .badge {
-            border: 1px solid #343a31;
-            border-radius: 999px;
-            padding: 8px 13px;
-            color: #c8cbbf;
-            font-size: 12px;
-        }
-
-        .hero {
-            text-align: center;
-            padding: 70px 0 38px;
-        }
-
-        .eyebrow {
-            color: #b8ef5e;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 11px;
-            font-weight: 800;
-        }
-
-        .hero h1 {
-            font-size: clamp(38px, 7vw, 68px);
-            line-height: 1.02;
-            letter-spacing: -3px;
-            margin: 18px 0 15px;
-        }
-
-        .hero p {
-            color: #a8ada3;
-            max-width: 590px;
-            margin: 0 auto;
-            line-height: 1.65;
-        }
-
-        .panel {
-            max-width: 780px;
-            margin: 30px auto 0;
-            background: #191c18;
-            border: 1px solid #333a30;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 28px 90px #0006;
-        }
-
-        .field {
-            display: flex;
-            gap: 10px;
-        }
-
-        .field input {
-            flex: 1;
-            min-width: 0;
-            background: #10120f;
-            border: 1px solid #343a32;
-            border-radius: 12px;
-            padding: 16px;
-            color: #f7f5f0;
-            font-size: 15px;
-            outline: none;
-        }
-
-        .field input:focus {
-            border-color: #b8ef5e;
-        }
-
-        .button {
-            border: 0;
-            border-radius: 12px;
-            background: #b8ef5e;
-            color: #15180f;
-            font-weight: 800;
-            padding: 0 22px;
-            cursor: pointer;
-            transition: 0.2s ease;
-        }
-
-        .button:hover {
-            opacity: 0.9;
-        }
-
-        .hint {
-            margin: 13px 3px 0;
-            color: #848a80;
-            font-size: 12px;
-        }
-
-        .platforms {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 26px auto 0;
-            max-width: 720px;
-        }
-
-        .chip {
-            color: #c3c7bc;
-            background: #1b1e1a;
-            border: 1px solid #30362e;
-            padding: 9px 13px;
-            border-radius: 999px;
-            font-size: 12px;
-        }
-
-        .status {
-            display: none;
-            margin-top: 14px;
-            color: #d8edb2;
-            font-size: 13px;
-            text-align: center;
-        }
-
-        .result-box {
-            display: none;
-            margin-top: 25px;
-            background: #10120f;
-            border: 1px solid #343a32;
-            border-radius: 14px;
-            padding: 20px;
-        }
-
-        .result-header {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .result-header img {
-            width: 120px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .result-title {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .result-source {
-            font-size: 12px;
-            color: #848a80;
-        }
-
-        .download-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .dl-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #191c18;
-            border: 1px solid #333a30;
-            padding: 12px 16px;
-            border-radius: 10px;
-            text-decoration: none;
-            color: #f7f5f0;
-            font-size: 14px;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .dl-item:hover {
-            border-color: #b8ef5e;
-            color: #b8ef5e;
-        }
-
-        .section {
-            max-width: 780px;
-            margin: 48px auto 0;
-        }
-
-        .section h2 {
-            font-size: 18px;
-            margin: 0 0 15px;
-        }
-
-        .options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .option {
-            background: #191c18;
-            border: 1px solid #333a30;
-            border-radius: 14px;
-            padding: 17px;
-        }
-
-        .option strong {
-            display: block;
-            font-size: 14px;
-        }
-
-        .option p {
-            font-size: 12px;
-            color: #92988e;
-            line-height: 1.5;
-            margin: 8px 0 0;
-        }
-
-        .notice {
-            margin-top: 25px;
-            border: 1px solid #43452d;
-            background: #222317;
-            color: #c8c8ab;
-            border-radius: 12px;
-            padding: 14px 16px;
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        .footer {
-            text-align: center;
-            color: #73796f;
-            font-size: 11px;
-            margin-top: 52px;
-        }
-
-        @media (max-width: 600px) {
-            .wrap { padding: 20px 16px 50px; }
-            .hero { padding-top: 50px; }
-            .hero h1 { letter-spacing: -2px; }
-            .field { flex-direction: column; }
-            .button { padding: 15px; }
-            .options { grid-template-columns: 1fr; }
-            .badge { font-size: 10px; }
-            .result-header { flex-direction: column; text-align: center; }
-            .result-header img { width: 100%; height: auto; }
+        .loader-dots div:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dots div:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes loader-pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.1); }
         }
     </style>
 </head>
-<body>
+<body class="bg-brand-dark text-slate-100 font-sans antialiased selection:bg-brand selection:text-brand-dark min-h-screen flex flex-col justify-between">
 
-<div class="wrap">
-    <div class="nav">
-        <div class="brand-group">
-            <div class="brand">Grab<span>HD</span></div>
-            <!-- Iconic Bookmark Me Badge -->
-            <button class="bookmark-btn" onclick="addBookmark()">
-                <span class="bookmark-icon">★</span>
-                <span>Bookmark Me</span>
+    <div class="w-full max-w-5xl mx-auto px-4 py-6">
+        <header class="flex items-center justify-between border-b border-brand-border/40 pb-5">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-xl bg-brand/10 border border-brand/30 flex items-center justify-center font-extrabold text-brand text-xl shadow-inner">
+                    G
+                </div>
+                <span class="font-extrabold text-2xl tracking-tight text-white">Grab<span class="text-brand">HD</span></span>
+            </div>
+
+            <button id="bookmarkBtn" onclick="handleBookmark()" class="group flex items-center gap-2 px-4 py-2 rounded-full border border-brand/30 bg-brand/10 text-brand text-xs font-semibold hover:bg-brand hover:text-brand-dark transition-all duration-300">
+                <svg class="w-4 h-4 fill-current transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+                    <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                </svg>
+                <span id="bookmarkText">Bookmark Me</span>
             </button>
-        </div>
-        <div class="badge">v1.0 Ultra Speed</div>
-    </div>
+        </header>
 
-    <div class="hero">
-        <div class="eyebrow">All-in-One Downloader</div>
-        <h1>Download Any Video in Seconds.</h1>
-        <p>Save MP4 videos without watermark and MP3 audio from TikTok, Instagram, YouTube, Facebook, and Twitter.</p>
-    </div>
+        <main class="py-12 md:py-16 text-center">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand/10 border border-brand/20 text-brand text-xs font-bold tracking-widest uppercase mb-6">
+                <span class="w-2 h-2 rounded-full bg-brand animate-ping"></span>
+                Universal Video Extractor
+            </div>
 
-    <div class="panel">
-        <div class="field">
-            <input type="text" id="videoUrlInput" placeholder="Paste link here (e.g., TikTok, Instagram Reels, YouTube)...">
-            <button class="button" onclick="downloadMedia()">Download</button>
-        </div>
-        <div class="hint">Paste any public social media video link to extract HD files.</div>
-        <div class="status" id="statusMessage">Processing video link, please wait...</div>
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight max-w-3xl mx-auto mb-6 text-white">
+                Download Any Video in <span class="text-brand">Seconds.</span>
+            </h1>
 
-        <div class="result-box" id="resultBox">
-            <div class="result-header">
-                <img id="resThumb" src="" alt="Thumbnail">
-                <div>
-                    <div class="result-title" id="resTitle">Video Title</div>
-                    <div class="result-source" id="resSource">Source: Unknown</div>
+            <p class="text-slate-400 max-w-xl mx-auto text-base md:text-lg mb-10 leading-relaxed">
+                Save HD videos without watermarks from TikTok, Instagram Reels, YouTube, Facebook, and Twitter for completely free.
+            </p>
+
+            <div class="max-w-2xl mx-auto bg-brand-card border border-brand-border rounded-2xl p-3 md:p-4 glow-effect mb-8">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <input type="text" id="videoUrlInput" placeholder="Paste link here (e.g. TikTok, Instagram Reels, YouTube)..." 
+                            class="w-full h-14 bg-brand-dark/80 border border-brand-border/80 rounded-xl px-4 text-white placeholder-slate-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand text-sm transition-all">
+                    </div>
+                    <button onclick="downloadMedia()" id="extractBtn" class="h-14 px-8 bg-brand text-brand-dark font-extrabold text-sm rounded-xl hover:bg-brand/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                        <span>Extract Video</span>
+                        <svg class="w-4 h-4 stroke-current fill-none stroke-[2.5]" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="loader" class="hidden py-6 text-center">
+                    <div class="loader-dots inline-flex items-center gap-2 mb-2">
+                        <div class="w-3 h-3 rounded-full bg-brand"></div>
+                        <div class="w-3 h-3 rounded-full bg-brand"></div>
+                        <div class="w-3 h-3 rounded-full bg-brand"></div>
+                    </div>
+                    <p class="text-slate-400 text-xs font-medium">Fetching video sources... Please wait</p>
+                </div>
+
+                <div id="errorMessage" class="hidden mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold text-center">
                 </div>
             </div>
-            <div class="download-list" id="downloadList"></div>
-        </div>
-    </div>
 
-    <div class="platforms">
-        <div class="chip">TikTok (No Watermark)</div>
-        <div class="chip">Instagram Reels</div>
-        <div class="chip">YouTube HD / MP3</div>
-        <div class="chip">Facebook Video</div>
-        <div class="chip">Twitter / X</div>
-    </div>
+            <div id="resultBox" class="hidden max-w-2xl mx-auto bg-brand-card border border-brand-border rounded-2xl p-6 text-left animate-fade-in">
+                <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center pb-5 border-b border-brand-border/60 mb-5">
+                    <img id="resThumb" src="" alt="Thumbnail" class="w-full sm:w-32 h-24 object-cover rounded-xl border border-brand-border/50 bg-black/40">
+                    <div>
+                        <span id="resSource" class="inline-block px-2.5 py-1 bg-brand/10 border border-brand/20 text-brand text-[10px] font-bold uppercase rounded-md mb-2">
+                            Social Media
+                        </span>
+                        <h3 id="resTitle" class="text-base font-bold text-white line-clamp-2 leading-snug">
+                            Extracted Media
+                        </h3>
+                    </div>
+                </div>
 
-    <div class="section">
-        <h2>Features & Performance</h2>
-        <div class="options">
-            <div class="option">
-                <strong>No Watermark Downloads</strong>
-                <p>Clean MP4 downloads for TikTok and Instagram without brand overlays or watermarks.</p>
+                <div class="space-y-3" id="downloadList">
+                    <!-- Dynamic links inject here -->
+                </div>
             </div>
-            <div class="option">
-                <strong>Ultra-Fast Extraction</strong>
-                <p>High speed servers process metadata in seconds and deliver direct link downloads.</p>
+
+            <div class="mt-12 pt-8 border-t border-brand-border/30">
+                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-4">Supported Platforms</p>
+                <div class="flex flex-wrap justify-center gap-2 max-w-xl mx-auto">
+                    <span class="px-3 py-1.5 rounded-full bg-brand-card border border-brand-border/60 text-slate-400 text-xs">TikTok (No Watermark)</span>
+                    <span class="px-3 py-1.5 rounded-full bg-brand-card border border-brand-border/60 text-slate-400 text-xs">Instagram Reels</span>
+                    <span class="px-3 py-1.5 rounded-full bg-brand-card border border-brand-border/60 text-slate-400 text-xs">YouTube Shorts</span>
+                    <span class="px-3 py-1.5 rounded-full bg-brand-card border border-brand-border/60 text-slate-400 text-xs">Facebook Video</span>
+                    <span class="px-3 py-1.5 rounded-full bg-brand-card border border-brand-border/60 text-slate-400 text-xs">Twitter / X</span>
+                </div>
             </div>
-        </div>
-
-        <div class="notice">
-            <strong>Legal Note:</strong> GrabHD respects copyright laws. Only download videos you have permission to use or personal content.
-        </div>
+        </main>
     </div>
 
-    <div class="footer">
-        &copy; 2026 GrabHD. All rights reserved.
-    </div>
-</div>
+    <footer class="w-full border-t border-brand-border/40 py-6 text-center text-slate-500 text-xs">
+        <p>&copy; 2026 GrabHD Downloader. Fast, Free, Serverless Video Extraction.</p>
+    </footer>
 
-<script>
-    // Bookmark functionality
-    function addBookmark() {
-        const title = "GrabHD - Free Video Downloader";
-        const url = window.location.href;
-
-        if (window.sidebar && window.sidebar.addPanel) {
-            // Firefox < 23
-            window.sidebar.addPanel(title, url, '');
-        } else if (window.external && ('AddFavorite' in window.external)) {
-            // IE Favorite
-            window.external.AddFavorite(url, title);
-        } else {
-            // Chrome, Opera, Safari, Modern Browsers
-            const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-            const shortcut = isMac ? 'Cmd + D' : 'Ctrl + D';
-            alert(`Press ${shortcut} on your keyboard to bookmark GrabHD!`);
-        }
-    }
-
-    async function downloadMedia() {
-        const urlInput = document.getElementById('videoUrlInput').value.trim();
-        const statusMsg = document.getElementById('statusMessage');
-        const resultBox = document.getElementById('resultBox');
-        const downloadList = document.getElementById('downloadList');
-
-        if (!urlInput) {
-            alert('Please paste a video link first!');
-            return;
+    <script>
+        function handleBookmark() {
+            const btnText = document.getElementById('bookmarkText');
+            if (navigator.userAgent.match(/mac/i)) {
+                alert('Press Cmd + D to bookmark this page!');
+            } else {
+                alert('Press Ctrl + D to bookmark this page!');
+            }
+            btnText.innerText = "Bookmarked!";
+            setTimeout(() => { btnText.innerText = "Bookmark Me"; }, 3000);
         }
 
-        statusMsg.style.display = 'block';
-        statusMsg.innerText = 'Extracting media links... Please wait.';
-        resultBox.style.display = 'none';
+        async function downloadMedia() {
+            const urlInput = document.getElementById('videoUrlInput').value.trim();
+            const loader = document.getElementById('loader');
+            const errorMessage = document.getElementById('errorMessage');
+            const resultBox = document.getElementById('resultBox');
+            const downloadList = document.getElementById('downloadList');
+            const extractBtn = document.getElementById('extractBtn');
 
-        try {
-            // 1. First attempt local Node.js backend endpoint
-            const response = await fetch('/api/download', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ videoUrl: urlInput })
-            });
+            errorMessage.classList.add('hidden');
+            resultBox.classList.add('hidden');
 
-            const result = await response.json();
-
-            if (result.success) {
-                renderResult(result.data);
-                statusMsg.style.display = 'none';
+            if (!urlInput) {
+                showError('Please paste a valid video URL first.');
                 return;
             }
-        } catch (err) {
-            console.log('Local server endpoint unavailable, attempting fallback engine...');
-        }
 
-        // 2. Fallback direct extraction engine if server backend is offline/standalone file
-        try {
-            const fallbackApi = `https://api.cobalt.tools/api/json`;
-            const fallbackRes = await fetch(fallbackApi, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ url: urlInput })
-            });
+            loader.classList.remove('hidden');
+            extractBtn.disabled = true;
+            extractBtn.classList.add('opacity-50');
 
-            const fbData = await fallbackRes.json();
-            statusMsg.style.display = 'none';
-
-            if (fbData && fbData.url) {
-                renderResult({
-                    title: 'GrabHD Download Ready',
-                    thumbnail: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&w=300&q=80',
-                    source: 'Social Media',
-                    formats: [
-                        { quality: 'HD MP4 (No Watermark)', type: 'mp4', url: fbData.url },
-                        { quality: 'Audio MP3', type: 'mp3', url: fbData.url }
-                    ]
+            try {
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ videoUrl: urlInput })
                 });
-            } else {
-                alert('Could not extract media directly. Please ensure your backend server (node server.js) is running!');
+
+                const result = await response.json();
+                loader.classList.add('hidden');
+                extractBtn.disabled = false;
+                extractBtn.classList.remove('opacity-50');
+
+                if (result.success) {
+                    const data = result.data;
+                    document.getElementById('resThumb').src = data.thumbnail;
+                    document.getElementById('resTitle').innerText = data.title;
+                    document.getElementById('resSource').innerText = data.source;
+
+                    downloadList.innerHTML = '';
+                    data.formats.forEach(item => {
+                        const dlAnchor = document.createElement('a');
+                        dlAnchor.className = 'flex items-center justify-between p-4 bg-brand text-brand-dark rounded-xl font-extrabold text-sm hover:bg-brand/90 transition-all shadow-md';
+                        dlAnchor.href = item.url;
+                        dlAnchor.target = '_blank';
+                        dlAnchor.rel = 'noopener noreferrer';
+                        dlAnchor.innerHTML = `
+                            <span>Download ${item.quality}</span>
+                            <span class="px-2 py-0.5 bg-brand-dark/10 rounded text-xs uppercase">${item.type}</span>
+                        `;
+                        downloadList.appendChild(dlAnchor);
+                    });
+
+                    resultBox.classList.remove('hidden');
+                } else {
+                    showError(result.error || 'Failed to extract video links. Make sure the video is public.');
+                }
+            } catch (err) {
+                loader.classList.add('hidden');
+                extractBtn.disabled = false;
+                extractBtn.classList.remove('opacity-50');
+                showError('Network error! Please check your connection and try again.');
             }
-
-        } catch (fbErr) {
-            statusMsg.style.display = 'none';
-            alert('Connection Error! Please start your Node.js backend using "node server.js" or check your internet connection.');
         }
-    }
 
-    function renderResult(data) {
-        const resultBox = document.getElementById('resultBox');
-        const downloadList = document.getElementById('downloadList');
-
-        document.getElementById('resThumb').src = data.thumbnail || 'https://via.placeholder.com/120x80';
-        document.getElementById('resTitle').innerText = data.title;
-        document.getElementById('resSource').innerText = `Platform: ${data.source}`;
-
-        downloadList.innerHTML = '';
-        data.formats.forEach(item => {
-            const dlAnchor = document.createElement('a');
-            dlAnchor.className = 'dl-item';
-            dlAnchor.href = item.url;
-            dlAnchor.target = '_blank';
-            dlAnchor.setAttribute('download', '');
-            dlAnchor.innerHTML = `<span>Download ${item.quality}</span> <span>${item.type.toUpperCase()}</span>`;
-            downloadList.appendChild(dlAnchor);
-        });
-
-        resultBox.style.display = 'block';
-    }
-</script>
-
+        function showError(msg) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.innerText = msg;
+            errorMessage.classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
-```
-
-I have updated the **GrabHD** web application file on the right side.
-
-### What's New:
-1. **Iconic "Bookmark Me" Button:** Added a glowing lime-accented **★ Bookmark Me** button at the top header bar next to the logo. Clicking it triggers the browser shortcut prompt (`Ctrl + D` or `Cmd + D`).
-2. **Built-in Fallback Extraction Engine:** Added a dual-mode fallback logic so if you open the HTML file directly (`file:///`), it gracefully connects to a public extraction service to extract media links.
