@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Universal Download Router
+// Universal Download Router with Separate Dedicated Engines
 app.post('/api/download', async (req, res) => {
     const videoUrl = req.body.videoUrl || req.body.url;
 
@@ -25,9 +25,9 @@ app.post('/api/download', async (req, res) => {
     }
 
     try {
-        // ------------------------------------
-        // 1. TIKTOK ENGINE (TikWM)
-        // ------------------------------------
+        // ==========================================
+        // 1. TIKTOK DEDICATED ENGINE
+        // ==========================================
         if (videoUrl.includes('tiktok.com')) {
             const tikRes = await axios.get(`https://www.tikwm.com/api/?url=${encodeURIComponent(videoUrl)}`);
             if (tikRes.data && tikRes.data.data) {
@@ -39,7 +39,7 @@ app.post('/api/download', async (req, res) => {
                         thumbnail: videoData.cover,
                         source: "TikTok",
                         formats: [
-                            { quality: "HD (No Watermark)", type: "mp4", url: videoData.play },
+                            { quality: "HD Video (No Watermark)", type: "mp4", url: videoData.play },
                             { quality: "Watermarked HD", type: "mp4", url: videoData.wmplay }
                         ]
                     }
@@ -47,84 +47,112 @@ app.post('/api/download', async (req, res) => {
             }
         }
 
-        // ------------------------------------
-        // 2. YOUTUBE / INSTAGRAM / FACEBOOK ENGINE (Primary VKR Engine)
-        // ------------------------------------
-        try {
-            const vkrRes = await axios.get(`https://api.vkrdown.com/v1/?url=${encodeURIComponent(videoUrl)}`, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                },
-                timeout: 9000
-            });
-
-            if (vkrRes.data && vkrRes.data.data) {
-                const mediaData = vkrRes.data.data;
-                const downloadLink = mediaData.url || mediaData.download_url || (mediaData.downloads && mediaData.downloads[0] ? mediaData.downloads[0].url : null);
-
-                if (downloadLink) {
+        // ==========================================
+        // 2. INSTAGRAM DEDICATED ENGINE
+        // ==========================================
+        if (videoUrl.includes('instagram.com')) {
+            const instaRes = await axios.get(`https://api.vkrdown.com/insta/?url=${encodeURIComponent(videoUrl)}`, { timeout: 8000 }).catch(() => null);
+            if (instaRes && instaRes.data && instaRes.data.data) {
+                const media = instaRes.data.data;
+                const downloadUrl = media.url || media.media || media.download_url;
+                if (downloadUrl) {
                     return res.json({
                         success: true,
                         data: {
-                            title: mediaData.title || "GrabHD Extracted Media",
-                            thumbnail: mediaData.thumbnail || "https://via.placeholder.com/160x90/b8ef5e/111310?text=GrabHD+Media",
-                            source: "Social Media",
+                            title: "Instagram Reel / Video",
+                            thumbnail: media.thumbnail || "https://via.placeholder.com/160x90/b8ef5e/111310?text=Instagram",
+                            source: "Instagram",
                             formats: [
-                                { quality: "HD Video (MP4)", type: "mp4", url: downloadLink }
+                                { quality: "HD Quality (MP4)", type: "mp4", url: downloadUrl }
                             ]
                         }
                     });
                 }
             }
-        } catch (e) {
-            // VKR Failed - Continue to Fallback
         }
 
-        // ------------------------------------
-        // 3. SECONDARY COBALT ENGINE (Multiple Mirrors)
-        // ------------------------------------
-        const cobaltMirrors = [
-            'https://co.wuk.sh/api/json',
-            'https://cobalt.api.scouts.host/api/json'
-        ];
-
-        for (const mirror of cobaltMirrors) {
-            try {
-                const cobaltRes = await axios.post(mirror, {
-                    url: videoUrl,
-                    videoQuality: "720"
-                }, {
-                    headers: { 'Content-Type': 'application/json' },
-                    timeout: 7000
-                });
-
-                if (cobaltRes.data && cobaltRes.data.url) {
+        // ==========================================
+        // 3. YOUTUBE / SHORTS DEDICATED ENGINE
+        // ==========================================
+        if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+            const ytRes = await axios.get(`https://api.vkrdown.com/v1/?url=${encodeURIComponent(videoUrl)}`, { timeout: 8000 }).catch(() => null);
+            if (ytRes && ytRes.data && ytRes.data.data) {
+                const ytData = ytRes.data.data;
+                const ytUrl = ytData.url || ytData.download_url || (ytData.downloads && ytData.downloads[0] ? ytData.downloads[0].url : null);
+                if (ytUrl) {
                     return res.json({
                         success: true,
                         data: {
-                            title: "GrabHD Extracted Video",
-                            thumbnail: "https://via.placeholder.com/160x90/b8ef5e/111310?text=GrabHD+Media",
-                            source: "Social Media",
+                            title: ytData.title || "YouTube Video",
+                            thumbnail: ytData.thumbnail || "https://via.placeholder.com/160x90/b8ef5e/111310?text=YouTube",
+                            source: "YouTube",
                             formats: [
-                                { quality: "HD Direct Video", type: "mp4", url: cobaltRes.data.url }
+                                { quality: "HD Video (MP4)", type: "mp4", url: ytUrl }
                             ]
                         }
                     });
                 }
-            } catch (err) {
-                continue;
             }
+        }
+
+        // ==========================================
+        // 4. FACEBOOK DEDICATED ENGINE
+        // ==========================================
+        if (videoUrl.includes('facebook.com') || videoUrl.includes('fb.watch')) {
+            const fbRes = await axios.get(`https://api.vkrdown.com/v1/?url=${encodeURIComponent(videoUrl)}`, { timeout: 8000 }).catch(() => null);
+            if (fbRes && fbRes.data && fbRes.data.data) {
+                const fbData = fbRes.data.data;
+                const fbUrl = fbData.url || fbData.download_url;
+                if (fbUrl) {
+                    return res.json({
+                        success: true,
+                        data: {
+                            title: fbData.title || "Facebook Video",
+                            thumbnail: fbData.thumbnail || "https://via.placeholder.com/160x90/b8ef5e/111310?text=Facebook",
+                            source: "Facebook",
+                            formats: [
+                                { quality: "HD Quality Video", type: "mp4", url: fbUrl }
+                            ]
+                        }
+                    });
+                }
+            }
+        }
+
+        // ==========================================
+        // 5. GLOBAL FALLBACK ENGINE (For Twitter & Others)
+        // ==========================================
+        const cobaltRes = await axios.post('https://co.wuk.sh/api/json', {
+            url: videoUrl,
+            vQuality: "720"
+        }, {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 8000
+        }).catch(() => null);
+
+        if (cobaltRes && cobaltRes.data && cobaltRes.data.url) {
+            return res.json({
+                success: true,
+                data: {
+                    title: "GrabHD Extracted Video",
+                    thumbnail: "https://via.placeholder.com/160x90/b8ef5e/111310?text=GrabHD+Media",
+                    source: "Social Media",
+                    formats: [
+                        { quality: "HD Direct Video", type: "mp4", url: cobaltRes.data.url }
+                    ]
+                }
+            });
         }
 
         return res.status(500).json({ 
             success: false, 
-            error: "Unable to parse video. Please verify the post is public." 
+            error: "Unable to extract video. Please ensure the post is public." 
         });
 
     } catch (error) {
         return res.status(500).json({ 
             success: false, 
-            error: "Extraction failed. Please try another link." 
+            error: "Extraction failed. Please check the link and try again." 
         });
     }
 });
