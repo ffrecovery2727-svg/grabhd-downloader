@@ -13,20 +13,21 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Universal Download Extraction Route
+// Universal Download Router
 app.post('/api/download', async (req, res) => {
-    // Both body keys handled (videoUrl & url)
     const videoUrl = req.body.videoUrl || req.body.url;
 
     if (!videoUrl) {
         return res.status(400).json({ 
             success: false, 
-            error: 'Please enter a valid video link.' 
+            error: 'Please enter a valid video URL.' 
         });
     }
 
     try {
-        // 1. TIKTOK ENGINE (TikWM API)
+        // ------------------------------------
+        // 1. TIKTOK ENGINE (TikWM)
+        // ------------------------------------
         if (videoUrl.includes('tiktok.com')) {
             const tikRes = await axios.get(`https://www.tikwm.com/api/?url=${encodeURIComponent(videoUrl)}`);
             if (tikRes.data && tikRes.data.data) {
@@ -46,70 +47,84 @@ app.post('/api/download', async (req, res) => {
             }
         }
 
-        // 2. INSTAGRAM / FACEBOOK / YOUTUBE (Direct Multi-Engine Fallback)
-        const apiEndpoints = [
-            `https://api.vkrdown.com/v1/?url=${encodeURIComponent(videoUrl)}`,
-            `https://api.vkrdown.com/insta/?url=${encodeURIComponent(videoUrl)}`
+        // ------------------------------------
+        // 2. YOUTUBE / INSTAGRAM / FACEBOOK ENGINE (Primary VKR Engine)
+        // ------------------------------------
+        try {
+            const vkrRes = await axios.get(`https://api.vkrdown.com/v1/?url=${encodeURIComponent(videoUrl)}`, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                },
+                timeout: 9000
+            });
+
+            if (vkrRes.data && vkrRes.data.data) {
+                const mediaData = vkrRes.data.data;
+                const downloadLink = mediaData.url || mediaData.download_url || (mediaData.downloads && mediaData.downloads[0] ? mediaData.downloads[0].url : null);
+
+                if (downloadLink) {
+                    return res.json({
+                        success: true,
+                        data: {
+                            title: mediaData.title || "GrabHD Extracted Media",
+                            thumbnail: mediaData.thumbnail || "https://via.placeholder.com/160x90/b8ef5e/111310?text=GrabHD+Media",
+                            source: "Social Media",
+                            formats: [
+                                { quality: "HD Video (MP4)", type: "mp4", url: downloadLink }
+                            ]
+                        }
+                    });
+                }
+            }
+        } catch (e) {
+            // VKR Failed - Continue to Fallback
+        }
+
+        // ------------------------------------
+        // 3. SECONDARY COBALT ENGINE (Multiple Mirrors)
+        // ------------------------------------
+        const cobaltMirrors = [
+            'https://co.wuk.sh/api/json',
+            'https://cobalt.api.scouts.host/api/json'
         ];
 
-        for (const endpoint of apiEndpoints) {
+        for (const mirror of cobaltMirrors) {
             try {
-                const response = await axios.get(endpoint, { timeout: 8000 });
-                if (response.data && response.data.data) {
-                    const media = response.data.data;
-                    const downloadUrl = media.url || media.download_url || media.media;
+                const cobaltRes = await axios.post(mirror, {
+                    url: videoUrl,
+                    videoQuality: "720"
+                }, {
+                    headers: { 'Content-Type': 'application/json' },
+                    timeout: 7000
+                });
 
-                    if (downloadUrl) {
-                        return res.json({
-                            success: true,
-                            data: {
-                                title: media.title || "GrabHD Extracted Video",
-                                thumbnail: media.thumbnail || "https://via.placeholder.com/160x90/b8ef5e/111310?text=GrabHD+Media",
-                                source: "Social Media",
-                                formats: [
-                                    { quality: "HD Video (MP4)", type: "mp4", url: downloadUrl }
-                                ]
-                            }
-                        });
-                    }
+                if (cobaltRes.data && cobaltRes.data.url) {
+                    return res.json({
+                        success: true,
+                        data: {
+                            title: "GrabHD Extracted Video",
+                            thumbnail: "https://via.placeholder.com/160x90/b8ef5e/111310?text=GrabHD+Media",
+                            source: "Social Media",
+                            formats: [
+                                { quality: "HD Direct Video", type: "mp4", url: cobaltRes.data.url }
+                            ]
+                        }
+                    });
                 }
-            } catch (e) {
+            } catch (err) {
                 continue;
             }
         }
 
-        // 3. COBALT ENGINE BACKUP
-        const cobaltRes = await axios.post('https://co.wuk.sh/api/json', {
-            url: videoUrl,
-            vQuality: "720"
-        }, {
-            headers: { 'Content-Type': 'application/json' },
-            timeout: 8000
-        }).catch(() => null);
-
-        if (cobaltRes && cobaltRes.data && cobaltRes.data.url) {
-            return res.json({
-                success: true,
-                data: {
-                    title: "GrabHD Extracted Video",
-                    thumbnail: "https://via.placeholder.com/160x90/b8ef5e/111310?text=GrabHD+Media",
-                    source: "Social Media",
-                    formats: [
-                        { quality: "HD Video (Direct)", type: "mp4", url: cobaltRes.data.url }
-                    ]
-                }
-            });
-        }
-
         return res.status(500).json({ 
             success: false, 
-            error: "Unable to parse video. Please verify the link is public." 
+            error: "Unable to parse video. Please verify the post is public." 
         });
 
     } catch (error) {
         return res.status(500).json({ 
             success: false, 
-            error: "Extraction failed. Please try again with a public link." 
+            error: "Extraction failed. Please try another link." 
         });
     }
 });
